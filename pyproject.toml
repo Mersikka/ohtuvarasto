@@ -13,7 +13,11 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest (>=8.4.2,<9.0.0)",
+<<<<<<< HEAD
     "coverage (>=7.11.0,<8.0.0)"
+=======
+    "pylint (>=4.0.2,<5.0.0)"
+>>>>>>> 5188bcb (Break all pylint rules)
 ]
 
 [tool.poetry]

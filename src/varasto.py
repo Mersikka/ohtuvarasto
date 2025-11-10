@@ -20,11 +20,25 @@ class Varasto:
     def paljonko_mahtuu(self):
         return self.tilavuus - self.saldo
 
+    def huono_func(self, yksi, kaksi, kolme, nelja, viisi, kuusi):
+        pass
+
     def lisaa_varastoon(self, maara):
         if maara < 0:
-            return
+          return
         if maara <= self.paljonko_mahtuu():
             self.saldo = self.saldo + maara
+            if True:
+                if True:
+                    if True:
+                        if True:
+                            if True:
+                                if True:
+                                    if True:
+                                        if True:
+                                            if True:
+                                                if True:
+                                                    pass
         else:
             self.saldo = self.tilavuus
 
