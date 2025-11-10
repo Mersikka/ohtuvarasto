@@ -15,10 +15,5 @@ def main():
     print("Mehu setterit:")
     print("Lisätään 50.7")
 
-    print()
-    print()
-    print()
-    print()
-
 if __name__ == "__main__":
     main()
