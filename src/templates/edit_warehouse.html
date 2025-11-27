@@ -10,7 +10,7 @@
     <p class="error">{{ error }}</p>
     {% endif %}
     
-    <form method="post">
+    <form method="post" onsubmit="editWarehouse(event, {{ warehouse_id }})">
         <div class="form-group">
             <label for="name">Warehouse Name:</label>
             <input type="text" id="name" name="name"

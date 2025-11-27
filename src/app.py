@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from varasto import Varasto
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 
 class WarehouseStorage:
@@ -145,6 +145,120 @@ def delete_warehouse(warehouse_id):
     if warehouse_id in warehouses:
         del warehouses[warehouse_id]
     return redirect(url_for('index'))
+
+
+# JSON API endpoints for AJAX operations
+def warehouse_to_dict(warehouse_id, warehouse):
+    varasto = warehouse['varasto']
+    return {
+        'id': warehouse_id,
+        'name': warehouse['name'],
+        'tilavuus': varasto.tilavuus,
+        'saldo': varasto.saldo,
+        'free_space': varasto.paljonko_mahtuu()
+    }
+
+
+def parse_float_values(tilavuus, alku_saldo=0):
+    return float(tilavuus), float(alku_saldo)
+
+
+def create_warehouse_entry(name, tilavuus, alku_saldo):
+    warehouse_id = storage.get_next_id()
+    warehouses[warehouse_id] = {
+        'name': name,
+        'varasto': Varasto(tilavuus, alku_saldo)
+    }
+    return warehouse_id
+
+
+@app.route('/api/warehouse', methods=['POST'])
+def api_create_warehouse():
+    data = request.get_json()
+    name = data.get('name', '').strip()
+
+    if not name:
+        return jsonify({'error': 'Name is required'}), 400
+
+    try:
+        tilavuus, alku_saldo = parse_float_values(
+            data.get('tilavuus', 0), data.get('alku_saldo', 0))
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid values'}), 400
+
+    warehouse_id = create_warehouse_entry(name, tilavuus, alku_saldo)
+    return jsonify(warehouse_to_dict(warehouse_id, warehouses[warehouse_id]))
+
+
+def update_warehouse_data(warehouse, name, tilavuus):
+    warehouse['name'] = name
+    warehouse['varasto'] = Varasto(tilavuus, warehouse['varasto'].saldo)
+
+
+@app.route('/api/warehouse/<int:warehouse_id>', methods=['PUT'])
+def api_update_warehouse(warehouse_id):
+    warehouse = warehouses.get(warehouse_id)
+    if not warehouse:
+        return jsonify({'error': 'Warehouse not found'}), 404
+
+    data = request.get_json()
+    name = data.get('name', '').strip()
+
+    if not name:
+        return jsonify({'error': 'Name is required'}), 400
+
+    try:
+        tilavuus = float(data.get('tilavuus'))
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid capacity'}), 400
+
+    update_warehouse_data(warehouse, name, tilavuus)
+    return jsonify(warehouse_to_dict(warehouse_id, warehouse))
+
+
+@app.route('/api/warehouse/<int:warehouse_id>', methods=['DELETE'])
+def api_delete_warehouse(warehouse_id):
+    if warehouse_id not in warehouses:
+        return jsonify({'error': 'Warehouse not found'}), 404
+
+    del warehouses[warehouse_id]
+    return jsonify({'success': True})
+
+
+@app.route('/api/warehouse/<int:warehouse_id>/add', methods=['POST'])
+def api_add_to_warehouse(warehouse_id):
+    warehouse = warehouses.get(warehouse_id)
+    if not warehouse:
+        return jsonify({'error': 'Warehouse not found'}), 404
+
+    data = request.get_json()
+    try:
+        maara = float(data.get('maara', 0))
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid amount'}), 400
+
+    warehouse['varasto'].lisaa_varastoon(maara)
+    result = warehouse_to_dict(warehouse_id, warehouse)
+    result['added'] = maara
+    return jsonify(result)
+
+
+@app.route('/api/warehouse/<int:warehouse_id>/remove', methods=['POST'])
+def api_remove_from_warehouse(warehouse_id):
+    warehouse = warehouses.get(warehouse_id)
+    if not warehouse:
+        return jsonify({'error': 'Warehouse not found'}), 404
+
+    data = request.get_json()
+    try:
+        maara = float(data.get('maara', 0))
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid amount'}), 400
+
+    removed = warehouse['varasto'].ota_varastosta(maara)
+    result = warehouse_to_dict(warehouse_id, warehouse)
+    result['removed'] = removed
+    return jsonify(result)
 
 
 if __name__ == '__main__':

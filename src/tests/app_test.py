@@ -190,3 +190,80 @@ class TestFlaskApp(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertAlmostEqual(warehouses[1]['varasto'].saldo, 50)
+
+
+class TestFlaskApiEndpoints(unittest.TestCase):
+    def setUp(self):
+        app.config['TESTING'] = True
+        self.client = app.test_client()
+        storage.clear()
+
+    def test_api_create_warehouse(self):
+        response = self.client.post('/api/warehouse',
+            json={'name': 'API Test', 'tilavuus': 100, 'alku_saldo': 25})
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data['name'], 'API Test')
+        self.assertEqual(data['tilavuus'], 100)
+        self.assertEqual(data['saldo'], 25)
+
+    def test_api_create_warehouse_no_name(self):
+        response = self.client.post('/api/warehouse',
+            json={'name': '', 'tilavuus': 100})
+        self.assertEqual(response.status_code, 400)
+
+    def test_api_update_warehouse(self):
+        self.client.post('/api/warehouse',
+            json={'name': 'Original', 'tilavuus': 100, 'alku_saldo': 0})
+        response = self.client.put('/api/warehouse/1',
+            json={'name': 'Updated', 'tilavuus': 200})
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data['name'], 'Updated')
+        self.assertEqual(data['tilavuus'], 200)
+
+    def test_api_update_nonexistent(self):
+        response = self.client.put('/api/warehouse/999',
+            json={'name': 'Test', 'tilavuus': 100})
+        self.assertEqual(response.status_code, 404)
+
+    def test_api_delete_warehouse(self):
+        self.client.post('/api/warehouse',
+            json={'name': 'Delete Me', 'tilavuus': 100})
+        response = self.client.delete('/api/warehouse/1')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(warehouses), 0)
+
+    def test_api_delete_nonexistent(self):
+        response = self.client.delete('/api/warehouse/999')
+        self.assertEqual(response.status_code, 404)
+
+    def test_api_add_content(self):
+        self.client.post('/api/warehouse',
+            json={'name': 'Add Test', 'tilavuus': 100, 'alku_saldo': 0})
+        response = self.client.post('/api/warehouse/1/add',
+            json={'maara': 50})
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data['saldo'], 50)
+        self.assertEqual(data['added'], 50)
+
+    def test_api_remove_content(self):
+        self.client.post('/api/warehouse',
+            json={'name': 'Remove Test', 'tilavuus': 100, 'alku_saldo': 75})
+        response = self.client.post('/api/warehouse/1/remove',
+            json={'maara': 25})
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data['saldo'], 50)
+        self.assertEqual(data['removed'], 25)
+
+    def test_api_add_nonexistent_warehouse(self):
+        response = self.client.post('/api/warehouse/999/add',
+            json={'maara': 10})
+        self.assertEqual(response.status_code, 404)
+
+    def test_api_remove_nonexistent_warehouse(self):
+        response = self.client.post('/api/warehouse/999/remove',
+            json={'maara': 10})
+        self.assertEqual(response.status_code, 404)
