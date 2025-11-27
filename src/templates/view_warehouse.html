@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}{{ warehouse.name }} - Warehouse Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ warehouse.name }}</h2>
+    
+    <div class="warehouse-info">
+        <p><strong>Capacity:</strong> <span id="capacity-value">{{ warehouse.varasto.tilavuus }}</span></p>
+        <p><strong>Current Balance:</strong> <span id="balance-value">{{ warehouse.varasto.saldo }}</span></p>
+        <p><strong>Free Space:</strong> <span id="free-space-value">{{ warehouse.varasto.paljonko_mahtuu() }}</span></p>
+        
+        {% set fill = 0 %}
+        {% if warehouse.varasto.tilavuus > 0 %}
+            {% set fill = (warehouse.varasto.saldo / warehouse.varasto.tilavuus) * 100 %}
+        {% endif %}
+        <div class="progress-bar">
+            <div class="progress-bar-fill" style="width: {{ fill }}%"></div>
+        </div>
+        <p><small><span id="percent-value">{{ "%.1f"|format(fill) }}</span>% full</small></p>
+    </div>
+    
+    <h3>Add Content</h3>
+    <form class="content-form" onsubmit="addContent(event, {{ warehouse_id }})">
+        <div class="form-group">
+            <label for="add_maara">Amount to add:</label>
+            <input type="number" id="add_maara" name="maara"
+                   step="0.01" min="0" value="0">
+        </div>
+        <button type="submit" class="btn btn-success">Add</button>
+    </form>
+    
+    <h3>Remove Content</h3>
+    <form class="content-form" onsubmit="removeContent(event, {{ warehouse_id }})">
+        <div class="form-group">
+            <label for="remove_maara">Amount to remove:</label>
+            <input type="number" id="remove_maara" name="maara"
+                   step="0.01" min="0" value="0">
+        </div>
+        <button type="submit" class="btn btn-danger">Remove</button>
+    </form>
+    
+    <div class="action-buttons">
+        <a href="{{ url_for('edit_warehouse', warehouse_id=warehouse_id) }}"
+           class="btn btn-secondary">Edit Warehouse</a>
+        <a href="{{ url_for('index') }}" class="btn">Back to List</a>
+    </div>
+</div>
+{% endblock %}

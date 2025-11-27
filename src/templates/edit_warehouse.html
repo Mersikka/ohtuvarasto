@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ warehouse.name }} - Warehouse Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Edit Warehouse: {{ warehouse.name }}</h2>
+    
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+    
+    <form method="post" onsubmit="editWarehouse(event, {{ warehouse_id }})">
+        <div class="form-group">
+            <label for="name">Warehouse Name:</label>
+            <input type="text" id="name" name="name"
+                   value="{{ warehouse.name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="tilavuus">Capacity:</label>
+            <input type="number" id="tilavuus" name="tilavuus"
+                   step="0.01" min="0"
+                   value="{{ warehouse.varasto.tilavuus }}" required>
+        </div>
+        
+        <p><strong>Current Balance:</strong> {{ warehouse.varasto.saldo }}</p>
+        <p><small>Note: Balance will be preserved when changing capacity
+           (up to the new capacity limit).</small></p>
+        
+        <button type="submit" class="btn btn-success">Save Changes</button>
+        <a href="{{ url_for('view_warehouse', warehouse_id=warehouse_id) }}"
+           class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

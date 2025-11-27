@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Warehouses - Warehouse Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>All Warehouses</h2>
+    <a href="{{ url_for('create_warehouse') }}" class="btn btn-success">
+        Create New Warehouse
+    </a>
+
+    {% if warehouses %}
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Capacity</th>
+                <th>Balance</th>
+                <th>Free Space</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for id, warehouse in warehouses.items() %}
+            <tr data-id="{{ id }}">
+                <td>{{ warehouse.name }}</td>
+                <td>{{ warehouse.varasto.tilavuus }}</td>
+                <td>{{ warehouse.varasto.saldo }}</td>
+                <td>{{ warehouse.varasto.paljonko_mahtuu() }}</td>
+                <td class="actions">
+                    <a href="{{ url_for('view_warehouse', warehouse_id=id) }}"
+                       class="btn">View</a>
+                    <a href="{{ url_for('edit_warehouse', warehouse_id=id) }}"
+                       class="btn btn-secondary">Edit</a>
+                    <button type="button" class="btn btn-danger delete-btn"
+                            data-id="{{ id }}">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No warehouses yet. Create one to get started!</p>
+    {% endif %}
+</div>
+{% endblock %}
