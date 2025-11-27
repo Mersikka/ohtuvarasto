@@ -23,7 +23,7 @@ function showToast(message, isError = false) {
 function animateProgressBar(element, targetPercent) {
     element.classList.add('animating');
     element.style.width = targetPercent + '%';
-    setTimeout(() => element.classList.remove('animating'), 800);
+    setTimeout(() => element.classList.remove('animating'), 500);
 }
 
 // Update warehouse info display
@@ -171,7 +171,7 @@ async function addContent(event, warehouseId) {
         );
         updateWarehouseInfo(result);
         input.value = '0';
-        showToast(`Added ${amount} to warehouse`);
+        showToast(`Added ${result.added} to warehouse`);
     } catch (error) {
         showToast(error.message, true);
     } finally {
